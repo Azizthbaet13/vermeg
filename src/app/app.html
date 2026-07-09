@@ -1,0 +1,15 @@
+<nav class="app-nav">
+  <div class="nav-brand">Vermeg PDF</div>
+  <div class="nav-links">
+    <a routerLink="/" routerLinkActive="active" [routerLinkActiveOptions]="{ exact: true }">
+      Tâche 1 — Facture
+    </a>
+    <a routerLink="/templates" routerLinkActive="active">
+      Tâche 2 — Templates
+    </a>
+  </div>
+</nav>
+
+<main class="app-main">
+  <router-outlet />
+</main>

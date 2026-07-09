@@ -1,0 +1,258 @@
+<div class="template-layout">
+  <header class="page-header">
+    <div class="header-badge">Tâche 2 — Templates</div>
+    <h1>Éditeur de templates CKEditor</h1>
+    <p>
+      Créez un template HTML avec des variables <code ngNonBindable>{{nom}}</code> et des tableaux typés
+      <code ngNonBindable>{{table:articles}}</code>, puis injectez des valeurs brutes via JSON.
+    </p>
+  </header>
+
+  <div class="workspace">
+    <!-- Colonne éditeur -->
+    <section class="panel editor-panel">
+      <div class="panel-header">
+        <h2>Template par zones</h2>
+        <div class="panel-actions">
+          <button type="button" class="btn btn-ghost" (click)="triggerImport()">
+            Importer HTML (legacy)
+          </button>
+          <button type="button" class="btn btn-ghost" (click)="exportTemplate()">Exporter assemblé</button>
+          <button type="button" class="btn btn-ghost" (click)="exportTemplateParts()">Exporter zones</button>
+        </div>
+        <input
+          #fileInput
+          type="file"
+          accept=".html,.htm,.txt"
+          hidden
+          (change)="onFileSelected($event)"
+        />
+      </div>
+
+      <div class="zone-tabs" role="tablist" aria-label="Zones du template">
+        <button
+          type="button"
+          class="tab"
+          [class.active]="activeZone() === 'header'"
+          (click)="setActiveZone('header')"
+        >
+          Header
+        </button>
+        <button
+          type="button"
+          class="tab"
+          [class.active]="activeZone() === 'body'"
+          (click)="setActiveZone('body')"
+        >
+          Body
+        </button>
+        <button
+          type="button"
+          class="tab"
+          [class.active]="activeZone() === 'footer'"
+          (click)="setActiveZone('footer')"
+        >
+          Footer
+        </button>
+        <span class="tab-hint">Chaque zone a son HTML + son CSS</span>
+      </div>
+
+      <div class="ckeditor-wrapper">
+        <ckeditor
+          [editor]="Editor"
+          [config]="editorConfig"
+          [data]="''"
+          (ready)="onEditorReady($event)"
+          (change)="onTemplateChange($event)"
+        />
+      </div>
+
+      <div class="css-box">
+        <div class="css-header">
+          <span>CSS de la zone <strong>{{ activeZone() }}</strong></span>
+          <div class="panel-actions">
+            <label class="btn btn-ghost file-btn">
+              Importer zones
+              <input type="file" accept=".json" hidden (change)="importTemplateParts($event)" />
+            </label>
+          </div>
+        </div>
+        <textarea
+          class="css-editor"
+          spellcheck="false"
+          placeholder=".tpl-header { ... }"
+          [ngModel]="getZoneCss(activeZone())"
+          (ngModelChange)="setZoneCss(activeZone(), $event)"
+        ></textarea>
+      </div>
+
+      <div class="tables-box">
+        <div class="tables-header">
+          <span>Configuration des tableaux</span>
+          <button type="button" class="btn btn-ghost" (click)="addTable()">+ Tableau</button>
+        </div>
+
+        <div class="table-tabs">
+          @for (table of parts().tables; track table.id) {
+            <button
+              type="button"
+              class="tab"
+              [class.active]="activeTableId() === table.id"
+              (click)="setActiveTable(table.id)"
+            >
+              {{ table.id }}
+            </button>
+          }
+        </div>
+
+        @if (activeTable(); as table) {
+          <div class="table-config">
+            <div class="table-meta">
+              <label>
+                ID tableau
+                <input
+                  type="text"
+                  [ngModel]="table.id"
+                  (ngModelChange)="updateTableField(table.id, 'id', $event)"
+                />
+              </label>
+              <label>
+                Clé JSON (tableau)
+                <input
+                  type="text"
+                  [ngModel]="table.dataKey"
+                  (ngModelChange)="updateTableField(table.id, 'dataKey', $event)"
+                />
+              </label>
+              <button type="button" class="btn btn-ghost" (click)="insertTablePlaceholder(table.id)">
+                Insérer {{ formatTablePlaceholder(table.id) }}
+              </button>
+            </div>
+
+            <div class="columns-grid columns-head">
+              <span>Clé JSON</span>
+              <span>Libellé colonne</span>
+              <span>Type</span>
+              <span>Devise</span>
+              <span></span>
+            </div>
+
+            @for (col of table.columns; track col.key + $index; let i = $index) {
+              <div class="columns-grid">
+                <input
+                  type="text"
+                  [ngModel]="col.key"
+                  (ngModelChange)="updateColumn(table.id, i, { key: $event })"
+                />
+                <input
+                  type="text"
+                  [ngModel]="col.label"
+                  (ngModelChange)="updateColumn(table.id, i, { label: $event })"
+                />
+                <select
+                  [ngModel]="col.type"
+                  (ngModelChange)="updateColumn(table.id, i, { type: $event })"
+                >
+                  @for (type of columnTypes; track type.value) {
+                    <option [value]="type.value">{{ type.label }}</option>
+                  }
+                </select>
+                <input
+                  type="text"
+                  placeholder="TND"
+                  [disabled]="col.type !== 'currency'"
+                  [ngModel]="col.currencyCode ?? 'TND'"
+                  (ngModelChange)="updateColumn(table.id, i, { currencyCode: $event })"
+                />
+                <button
+                  type="button"
+                  class="btn-icon"
+                  title="Supprimer la colonne"
+                  (click)="removeColumn(table.id, i)"
+                >
+                  ×
+                </button>
+              </div>
+            }
+
+            <button type="button" class="btn btn-ghost add-col-btn" (click)="addColumn(table.id)">
+              + Colonne
+            </button>
+
+            <p class="tables-hint">
+              L'utilisateur saisit des valeurs brutes (<code>250</code>, <code>2027-07-15</code>,
+              <code>false</code>) — le formatage est appliqué automatiquement selon le type.
+            </p>
+          </div>
+        }
+      </div>
+
+      @if (detectedVariables().length > 0) {
+        <div class="variables-bar">
+          <span class="variables-label">Variables détectées :</span>
+          @for (variable of detectedVariables(); track variable) {
+            <code class="var-chip">{{ formatVariable(variable) }}</code>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Colonne JSON -->
+    <section class="panel json-panel">
+      <div class="panel-header">
+        <h2>Données JSON</h2>
+        <button type="button" class="btn btn-ghost" (click)="loadSampleJson()">
+          Exemple
+        </button>
+      </div>
+
+      <textarea
+        class="json-editor"
+        spellcheck="false"
+        placeholder='{ "clientName": "..." }'
+        [ngModel]="jsonInput()"
+        (ngModelChange)="jsonInput.set($event)"
+      ></textarea>
+
+      @if (jsonError()) {
+        <p class="json-error" role="alert">{{ jsonError() }}</p>
+      } @else {
+        <p class="json-hint">
+          Valeurs brutes dans le JSON — le template applique le format (devise, date, booléen…).
+          Notation imbriquée : <code ngNonBindable>{{client.nom}}</code>
+        </p>
+      }
+
+      <div class="actions">
+        <button
+          type="button"
+          class="btn btn-primary"
+          [disabled]="isGenerating() || !!jsonError()"
+          (click)="generatePdf()"
+        >
+          {{ isGenerating() ? 'Génération…' : 'Générer le PDF' }}
+        </button>
+        <button type="button" class="btn btn-secondary" (click)="reset()">
+          Réinitialiser
+        </button>
+      </div>
+    </section>
+
+    <!-- Aperçu -->
+    <section class="panel preview-panel">
+      <div class="panel-header">
+        <h2>Aperçu rendu</h2>
+        <span class="live-dot">Live</span>
+      </div>
+
+      <div class="preview-card">
+        <div #preview class="preview-content ck-content" [innerHTML]="renderedHtml()"></div>
+      </div>
+
+      <p class="preview-legend">
+        <span class="legend-filled">■</span> variable remplie &nbsp;
+        <span class="legend-missing">■</span> variable manquante
+      </p>
+    </section>
+  </div>
+</div>
