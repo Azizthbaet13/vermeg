@@ -1,0 +1,56 @@
+{
+  "version": 2,
+  "parts": {
+    "headerHtml": "<div class=\"header\">\n  <div class=\"brand\">Facture</div>\n  <div class=\"meta\">\n    <div class=\"invoice-number\">{{invoiceNumber}}</div>\n    <div class=\"date\">{{date}}</div>\n  </div>\n</div>",
+    "bodyHtml": "<div class=\"bill-to\">\n  <div class=\"label\">Facturé à</div>\n  <div class=\"name\">{{clientName}}</div>\n  <div class=\"company\">{{company}}</div>\n</div>\n\n<hr />\n\n<h3>Articles</h3>\n{{table:articles}}\n\n<div class=\"total\">\n  <span>Total général</span>\n  <strong>{{amount}}</strong>\n</div>",
+    "footerHtml": "<div class=\"footer\">\n  <span>Merci pour votre confiance.</span>\n</div>",
+    "headerCss": ".tpl-header .header{\n  display:flex;\n  justify-content:space-between;\n  align-items:flex-start;\n  gap:16px;\n}\n.tpl-header .brand{\n  font-size:28px;\n  font-weight:800;\n  letter-spacing:-0.02em;\n}\n.tpl-header .meta{\n  text-align:right;\n  font-size:13px;\n  color:#6b7280;\n}\n.tpl-header .invoice-number{\n  font-weight:700;\n  color:#111827;\n}",
+    "bodyCss": ".tpl-body{\n  padding-top:16px;\n}\n.tpl-body .bill-to .label{\n  font-size:11px;\n  letter-spacing:0.08em;\n  text-transform:uppercase;\n  color:#9ca3af;\n}\n.tpl-body .bill-to .name{\n  font-weight:700;\n}\n.tpl-body .bill-to .company{\n  color:#6b7280;\n}\n.tpl-body hr{\n  border:none;\n  border-top:1px solid #e5e7eb;\n  margin:16px 0;\n}\n.tpl-body .tpl-table{\n  width:100%;\n  border-collapse:collapse;\n  margin:12px 0 18px;\n  font-size:13px;\n}\n.tpl-body .tpl-table th,\n.tpl-body .tpl-table td{\n  border:1px solid #e5e7eb;\n  padding:8px 10px;\n  text-align:left;\n}\n.tpl-body .tpl-table th{\n  background:#f9fafb;\n  font-size:11px;\n  text-transform:uppercase;\n  letter-spacing:0.05em;\n  color:#6b7280;\n}\n.tpl-body .tpl-table td.cell-filled{\n  background:#f0fdf4;\n}\n.tpl-body .tpl-table td.cell-missing{\n  background:#fef2f2;\n  color:#991b1b;\n}\n.tpl-body .total{\n  display:flex;\n  justify-content:space-between;\n  align-items:center;\n  margin-top:18px;\n  padding:10px 12px;\n  border:1px solid #e5e7eb;\n  border-radius:10px;\n  background:#fafafa;\n}",
+    "footerCss": ".tpl-footer{\n  margin-top:18px;\n  padding-top:12px;\n  border-top:1px solid #e5e7eb;\n  font-size:12px;\n  color:#9ca3af;\n  text-align:center;\n}",
+    "tables": [
+      {
+        "id": "articles",
+        "dataKey": "articles",
+        "columns": [
+          {
+            "key": "label",
+            "label": "Article",
+            "type": "text"
+          },
+          {
+            "key": "quantity",
+            "label": "Qté",
+            "type": "number"
+          },
+          {
+            "key": "unitPrice",
+            "label": "Prix unitaire",
+            "type": "currency",
+            "currencyCode": "TND"
+          },
+          {
+            "key": "discount",
+            "label": "Remise",
+            "type": "percentage"
+          },
+          {
+            "key": "deliveryDate",
+            "label": "Livraison",
+            "type": "date"
+          },
+          {
+            "key": "paid",
+            "label": "Payé",
+            "type": "boolean"
+          },
+          {
+            "key": "total",
+            "label": "Total",
+            "type": "currency",
+            "currencyCode": "TND"
+          }
+        ]
+      }
+    ]
+  }
+}
