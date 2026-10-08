@@ -1,0 +1,109 @@
+@if (open()) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)" role="presentation">
+    <div class="modal-card" role="dialog" aria-labelledby="git-import-title" aria-modal="true">
+      <header class="modal-header">
+        <h2 id="git-import-title">Importer depuis Git</h2>
+        <button type="button" class="modal-close" aria-label="Fermer" (click)="close()">×</button>
+      </header>
+
+      <form class="modal-form" (ngSubmit)="submit()">
+        <label class="field">
+          <span>Nom de l'application <em>(optionnel)</em></span>
+          <input
+            type="text"
+            placeholder="Ex. Facture Vermeg"
+            [ngModel]="appName()"
+            (ngModelChange)="appName.set($event)"
+            name="appName"
+          />
+        </label>
+
+        <label class="field">
+          <span>URL du dépôt Git <strong>*</strong></span>
+          <input
+            type="url"
+            placeholder="https://github.com/owner/repo"
+            required
+            [ngModel]="repoUrl()"
+            (ngModelChange)="repoUrl.set($event)"
+            name="repoUrl"
+          />
+        </label>
+
+        <label class="field">
+          <span>Access Token <strong>*</strong></span>
+          <input
+            type="password"
+            placeholder="ghp_xxxxxxxxxxxx"
+            required
+            autocomplete="off"
+            [ngModel]="accessToken()"
+            (ngModelChange)="accessToken.set($event)"
+            name="accessToken"
+          />
+          <small>
+            Token personnel GitHub avec accès au dépôt.
+            <a href="https://github.com/settings/tokens" target="_blank" rel="noopener noreferrer">
+              Créer un token
+            </a>
+          </small>
+        </label>
+
+        <div class="field-row">
+          <label class="field flex-1">
+            <span>Branche / Tag <strong>*</strong></span>
+            <select
+              required
+              [ngModel]="selectedRef()"
+              (ngModelChange)="selectedRef.set($event)"
+              name="selectedRef"
+            >
+              @if (refs().length === 0) {
+                <option value="main">main</option>
+              }
+              @for (ref of refs(); track ref.name + ref.type) {
+                <option [value]="ref.name">{{ refLabel(ref) }}</option>
+              }
+            </select>
+          </label>
+          <button
+            type="button"
+            class="btn btn-secondary load-refs-btn"
+            [disabled]="isLoadingRefs()"
+            (click)="loadRefs()"
+          >
+            {{ isLoadingRefs() ? 'Chargement…' : 'Charger' }}
+          </button>
+        </div>
+
+        <label class="field">
+          <span>Chemin du fichier <strong>*</strong></span>
+          <input
+            type="text"
+            placeholder="templates/template-parts.json ou template-assemble.html"
+            required
+            [ngModel]="filePath()"
+            (ngModelChange)="filePath.set($event)"
+            name="filePath"
+          />
+          <small>
+            Format recommandé : <code>template-parts.json</code> (zones séparées) ou
+            <code>template-assemble.html</code> (classes <code>tpl-header</code> /
+            <code>tpl-body</code> / <code>tpl-footer</code>).
+          </small>
+        </label>
+
+        @if (error()) {
+          <p class="form-error" role="alert">{{ error() }}</p>
+        }
+
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-ghost" (click)="close()">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isImporting()">
+            {{ isImporting() ? 'Import…' : 'Importer' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

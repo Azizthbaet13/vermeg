@@ -1,0 +1,43 @@
+server:
+  port: 8081
+  tomcat:
+    max-http-form-post-size: 64MB
+    max-swallow-size: 64MB
+
+spring:
+  servlet:
+    multipart:
+      max-request-size: 64MB
+      max-file-size: 64MB
+  codec:
+    max-in-memory-size: 64MB
+  datasource:
+    url: jdbc:mysql://localhost:3306/pdf_templates_db?useSSL=false&allowPublicKeyRetrieval=true&serverTimezone=UTC&createDatabaseIfNotExist=true&characterEncoding=UTF-8&connectionCollation=utf8mb4_unicode_ci
+    username: ${DB_USER:root}
+    password: ${DB_PASSWORD:}
+    hikari:
+      maximum-pool-size: 10
+  jpa:
+    hibernate:
+      ddl-auto: update
+    open-in-view: false
+  thymeleaf:
+    check-template-location: false
+
+cors:
+  allowed-origin-patterns: ${CORS_ORIGIN_PATTERNS:http://localhost:*,http://127.0.0.1:*}
+
+github:
+  repo-root: ${GITHUB_REPO_ROOT:}
+
+playwright:
+  headless: true
+  channel: ${PLAYWRIGHT_CHANNEL:chrome}
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    tags-sorter: alpha
+    operations-sorter: method
+  api-docs:
+    path: /v3/api-docs

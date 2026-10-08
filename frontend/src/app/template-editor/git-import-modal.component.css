@@ -1,0 +1,174 @@
+.modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(7, 20, 34, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+  backdrop-filter: blur(4px);
+}
+
+.modal-card {
+  width: min(520px, 100%);
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 24px 48px rgba(7, 20, 34, 0.22);
+  overflow: hidden;
+  border: 1px solid #d5dde6;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.95rem 1.15rem;
+  background: #0b1f33;
+  color: #f4f6f8;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.modal-close {
+  border: none;
+  background: transparent;
+  font-size: 1.4rem;
+  line-height: 1;
+  color: #9fb3c7;
+  cursor: pointer;
+  padding: 0.1rem 0.4rem;
+  border-radius: 4px;
+}
+
+.modal-close:hover {
+  background: rgba(255, 255, 255, 0.08);
+  color: #fff;
+}
+
+.modal-form {
+  padding: 1.15rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+}
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.field span {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: 0.02em;
+}
+
+.field em {
+  font-style: normal;
+  color: #94a3b8;
+  font-weight: 400;
+}
+
+.field input,
+.field select {
+  padding: 0.55rem 0.7rem;
+  border: 1px solid #d5dde6;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  font-family: inherit;
+  color: #0f1c2a;
+  background: #fff;
+}
+
+.field input:focus,
+.field select:focus {
+  outline: none;
+  border-color: #1a4060;
+  box-shadow: 0 0 0 3px rgba(26, 64, 96, 0.12);
+}
+
+.field small {
+  font-size: 0.72rem;
+  color: #64748b;
+  line-height: 1.45;
+}
+
+.field small a {
+  color: #1a4060;
+  font-weight: 600;
+}
+
+.field-row {
+  display: flex;
+  gap: 0.6rem;
+  align-items: flex-end;
+}
+
+.flex-1 {
+  flex: 1;
+}
+
+.load-refs-btn {
+  white-space: nowrap;
+  margin-bottom: 1px;
+}
+
+.form-error {
+  margin: 0;
+  padding: 0.55rem 0.75rem;
+  background: #fdf2f0;
+  color: #9f2216;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  border: 1px solid #f0c7c2;
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.5rem;
+  padding-top: 0.2rem;
+}
+
+.btn {
+  padding: 0.55rem 0.95rem;
+  border: none;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: #1a4060;
+  color: #fff;
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #123049;
+}
+
+.btn-secondary {
+  background: #f8fafc;
+  color: #334155;
+  border: 1px solid #d5dde6;
+}
+
+.btn-ghost {
+  background: transparent;
+  color: #64748b;
+}

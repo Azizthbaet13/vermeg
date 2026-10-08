@@ -1,0 +1,43 @@
+# Frontend (Angular)
+frontend/node_modules/
+frontend/dist/
+frontend/.angular/
+frontend/out-tsc/
+frontend/coverage/
+node_modules/
+dist/
+.angular/
+
+# Backend (Maven)
+backend/target/
+backend/.idea/
+*.iml
+
+# Nested clone / local scratch
+/vermeg/
+
+# Logs and caches
+npm-debug.log
+yarn-error.log
+*.log
+.sass-cache/
+
+# IDEs
+.idea/
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+*.sublime-workspace
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+.history/*
+
+# System
+.DS_Store
+Thumbs.db
+__screenshots__/

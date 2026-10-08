@@ -1,0 +1,88 @@
+@if (open()) {
+  <div class="modal-backdrop" (click)="onBackdropClick($event)" role="presentation">
+    <div class="modal-card" role="dialog" aria-labelledby="git-commit-title" aria-modal="true">
+      <header class="modal-header">
+        <h2 id="git-commit-title">Commit vers GitHub</h2>
+        <button type="button" class="modal-close" aria-label="Fermer" (click)="close()">×</button>
+      </header>
+
+      <form class="modal-form" (ngSubmit)="submit()">
+        <label class="field">
+          <span>URL du dépôt Git <strong>*</strong></span>
+          <input
+            type="url"
+            required
+            [ngModel]="repoUrl()"
+            (ngModelChange)="repoUrl.set($event)"
+            name="repoUrl"
+          />
+        </label>
+
+        <label class="field">
+          <span>Access Token <em>(optionnel)</em></span>
+          <input
+            type="password"
+            placeholder="Laisser vide : push via git local"
+            autocomplete="off"
+            [ngModel]="accessToken()"
+            (ngModelChange)="accessToken.set($event)"
+            name="accessToken"
+          />
+          <small>
+            Si le champ est vide, le backend pousse avec <code>git push</code> (identifiants Windows / GitHub).
+            Un PAT reste possible : Contents <strong>Read and write</strong> sur
+            <code>Azizthbaet13/vermeg</code>.
+          </small>
+        </label>
+
+        <label class="field">
+          <span>Branche <strong>*</strong></span>
+          <input
+            type="text"
+            required
+            [ngModel]="branch()"
+            (ngModelChange)="branch.set($event)"
+            name="branch"
+          />
+        </label>
+
+        <label class="field">
+          <span>Chemin du fichier <strong>*</strong></span>
+          <input
+            type="text"
+            required
+            [ngModel]="filePath()"
+            (ngModelChange)="filePath.set($event)"
+            name="filePath"
+          />
+          <small>
+            Dossier cible : <code>templates/</code> sur la branche
+            <code>templates-only</code>. Format JSON zones (réimportable).
+          </small>
+        </label>
+
+        <label class="field">
+          <span>Message de commit <strong>*</strong></span>
+          <input
+            type="text"
+            required
+            [ngModel]="commitMessage()"
+            (ngModelChange)="commitMessage.set($event)"
+            name="commitMessage"
+          />
+        </label>
+
+        @if (error()) {
+          <p class="form-error" role="alert">{{ error() }}</p>
+        }
+
+        <footer class="modal-footer">
+          <button type="button" class="btn btn-ghost" (click)="close()">Annuler</button>
+          <button type="submit" class="btn btn-primary" [disabled]="isCommitting()">
+            {{ isCommitting() ? 'Commit…' : 'Commit et push' }}
+          </button>
+        </footer>
+      </form>
+    </div>
+  </div>
+}

@@ -1,0 +1,406 @@
+<div class="template-layout">
+  <div class="workspace">
+    <!-- Colonne éditeur -->
+    <section class="panel editor-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="panel-kicker">Composition</span>
+          <h2>Template par zones</h2>
+        </div>
+        <div class="panel-actions">
+          <label class="template-name-field">
+            En base
+            <select
+              [ngModel]="savedTemplateId()"
+              (ngModelChange)="onSelectSavedTemplate($event)"
+            >
+              <option [ngValue]="null">Nouveau template</option>
+              @for (tpl of savedTemplates(); track tpl.id) {
+                <option [ngValue]="tpl.id">{{ tpl.name }} (#{{ tpl.id }})</option>
+              }
+            </select>
+          </label>
+          <label class="template-name-field">
+            Nom
+            <input
+              type="text"
+              [ngModel]="templateName()"
+              (ngModelChange)="templateName.set($event)"
+              placeholder="Nom du template"
+            />
+          </label>
+          <div class="btn-group">
+            <button
+              type="button"
+              class="btn btn-primary btn-compact"
+              [disabled]="isSaving()"
+              (click)="saveTemplate()"
+            >
+              {{ isSaving() ? 'Sauvegarde…' : (savedTemplateId() ? 'Mettre à jour' : 'Sauvegarder') }}
+            </button>
+          </div>
+          <div class="btn-group">
+            <button type="button" class="btn btn-ghost" (click)="triggerImport()">Importer</button>
+            <button type="button" class="btn btn-ghost" (click)="openGitModal()">Git</button>
+            <button type="button" class="btn btn-ghost" (click)="openGitCommitModal()">Commit</button>
+          </div>
+          <div class="btn-group">
+            <button type="button" class="btn btn-ghost" (click)="exportTemplate()">Assemblé</button>
+            <button type="button" class="btn btn-ghost" (click)="exportTemplateParts()">Zones</button>
+          </div>
+        </div>
+        <input
+          #fileInput
+          type="file"
+          accept=".html,.htm,.txt,.json"
+          hidden
+          (change)="onFileSelected($event)"
+        />
+      </div>
+
+      <div class="zone-tabs" role="tablist" aria-label="Zones du template">
+        <button
+          type="button"
+          class="tab"
+          [class.active]="activeZone() === 'header'"
+          (click)="setActiveZone('header')"
+        >
+          Header
+        </button>
+        <button
+          type="button"
+          class="tab"
+          [class.active]="activeZone() === 'body'"
+          (click)="setActiveZone('body')"
+        >
+          Body
+        </button>
+        <button
+          type="button"
+          class="tab"
+          [class.active]="activeZone() === 'footer'"
+          (click)="setActiveZone('footer')"
+        >
+          Footer
+        </button>
+        <span class="tab-hint">HTML + CSS par zone</span>
+      </div>
+
+      @if (importStatus()) {
+        <p
+          class="import-status"
+          [class.import-status-error]="statusKind() === 'error'"
+          role="status"
+        >
+          {{ importStatus() }}
+        </p>
+      }
+
+      <div class="editor-split">
+        <aside class="detected-panel" aria-label="Champs détectés">
+          <h3>Champs détectés</h3>
+          @if (detectedFields().length > 0) {
+            <div class="field-list">
+              @for (field of detectedFields(); track field.key + field.type) {
+                <button
+                  type="button"
+                  class="field-chip"
+                  [class.table-chip]="field.type === 'table'"
+                  draggable="true"
+                  (dragstart)="onFieldDragStart($event, field.token)"
+                  (click)="insertFieldToken(field.token)"
+                >
+                  <span class="chip-type">{{ field.type === 'table' ? 'TABLE' : 'VAR' }}</span>
+                  <code>{{ field.token }}</code>
+                </button>
+              }
+            </div>
+            <p class="detected-hint">Glissez ou cliquez pour insérer.</p>
+          } @else {
+            <p class="detected-hint">Entrez un JSON valide à droite pour lister les champs.</p>
+          }
+        </aside>
+
+        <div class="ckeditor-wrapper">
+          <ckeditor
+            [editor]="Editor"
+            [config]="editorConfig"
+            [data]="''"
+            (ready)="onEditorReady($event)"
+            (change)="onTemplateChange($event)"
+          />
+        </div>
+      </div>
+
+      <div class="css-box">
+        <div class="css-header">
+          <span>CSS — zone <strong>{{ activeZone() }}</strong></span>
+          <label class="btn btn-ghost file-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            Importer zones
+            <input type="file" accept=".json" hidden (change)="importTemplateParts($event)" />
+          </label>
+        </div>
+        <textarea
+          class="css-editor"
+          spellcheck="false"
+          placeholder=".tpl-header { ... }"
+          [ngModel]="getZoneCss(activeZone())"
+          (ngModelChange)="setZoneCss(activeZone(), $event)"
+        ></textarea>
+      </div>
+
+      <div class="tables-box">
+        <div class="tables-header">
+          <span>Configuration des tableaux</span>
+          <button type="button" class="btn btn-ghost" (click)="addTable()">+ Tableau</button>
+        </div>
+
+        <div class="table-tabs">
+          @for (table of parts().tables; track table.id) {
+            <button
+              type="button"
+              class="tab tab-sm"
+              [class.active]="activeTableId() === table.id"
+              (click)="setActiveTable(table.id)"
+            >
+              {{ table.id }}
+            </button>
+          }
+        </div>
+
+        @if (activeTable(); as table) {
+          <div class="table-config">
+            <div class="table-meta">
+              <label>
+                ID tableau
+                <input
+                  type="text"
+                  [ngModel]="tableIdValue(table)"
+                  (focus)="onTableIdFocus(table.id)"
+                  (ngModelChange)="onTableIdInput(table.id, $event)"
+                  (blur)="commitTableIdRename(table.id, $any($event.target).value)"
+                />
+              </label>
+              <label>
+                Clé JSON (tableau)
+                <input
+                  type="text"
+                  list="json-array-keys"
+                  [ngModel]="table.dataKey"
+                  (ngModelChange)="updateTableField(table.id, 'dataKey', $event)"
+                />
+              </label>
+              <div class="table-meta-actions">
+                <button type="button" class="btn btn-ghost" (click)="insertTablePlaceholder(table.id)">
+                  Insérer {{ formatTablePlaceholder(table.id) }}
+                </button>
+                <button
+                  type="button"
+                  class="btn btn-ghost"
+                  (click)="syncColumnsFromJson(table.id)"
+                  [disabled]="jsonError()"
+                >
+                  Détecter colonnes
+                </button>
+                @if (parts().tables.length > 1) {
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-danger-ghost"
+                    (click)="removeTable(table.id)"
+                  >
+                    Supprimer
+                  </button>
+                }
+              </div>
+            </div>
+
+            <datalist id="json-array-keys">
+              @for (key of jsonArrayKeys(); track key) {
+                <option [value]="key"></option>
+              }
+            </datalist>
+
+            @if (tableConfigStatus().missing.length > 0) {
+              <p class="tables-warning" role="status">
+                Placeholders sans configuration :
+                @for (missingId of tableConfigStatus().missing; track missingId) {
+                  <code>{{ formatTablePlaceholder(missingId) }}</code>
+                }
+              </p>
+            }
+
+            <div class="columns-table-wrap">
+              <table class="columns-table">
+                <colgroup>
+                  <col class="col-key" />
+                  <col class="col-label" />
+                  <col class="col-type" />
+                  <col class="col-currency" />
+                  <col class="col-action" />
+                </colgroup>
+                <thead>
+                  <tr class="columns-head">
+                    <th scope="col">Clé JSON</th>
+                    <th scope="col">Libellé colonne</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Devise</th>
+                    <th scope="col" aria-label="Actions"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (col of table.columns; track col.key + $index; let i = $index) {
+                    <tr>
+                      <td>
+                        <input
+                          type="text"
+                          [ngModel]="col.key"
+                          (ngModelChange)="updateColumn(table.id, i, { key: $event })"
+                        />
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          [ngModel]="col.label"
+                          (ngModelChange)="updateColumn(table.id, i, { label: $event })"
+                        />
+                      </td>
+                      <td>
+                        <select
+                          [ngModel]="col.type"
+                          (ngModelChange)="updateColumn(table.id, i, { type: $event })"
+                        >
+                          @for (type of columnTypes; track type.value) {
+                            <option [value]="type.value">{{ type.label }}</option>
+                          }
+                        </select>
+                      </td>
+                      <td>
+                        <input
+                          type="text"
+                          placeholder="TND"
+                          [disabled]="col.type !== 'currency'"
+                          [ngModel]="col.currencyCode ?? 'TND'"
+                          (ngModelChange)="updateColumn(table.id, i, { currencyCode: $event })"
+                        />
+                      </td>
+                      <td>
+                        <button
+                          type="button"
+                          class="btn-icon"
+                          title="Supprimer la colonne"
+                          (click)="removeColumn(table.id, i)"
+                        >
+                          ×
+                        </button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+
+            <button type="button" class="btn btn-ghost add-col-btn" (click)="addColumn(table.id)">
+              + Colonne
+            </button>
+
+            <p class="tables-hint">
+              Valeurs brutes (<code>250</code>, <code>2027-07-15</code>, <code>false</code>) —
+              formatage automatique selon le type.
+            </p>
+          </div>
+        }
+      </div>
+
+      @if (detectedVariables().length > 0) {
+        <div class="variables-bar">
+          <span class="variables-label">Variables template :</span>
+          @for (variable of detectedVariables(); track variable) {
+            <code class="var-chip">{{ formatVariable(variable) }}</code>
+          }
+        </div>
+      }
+    </section>
+
+    <!-- Colonne JSON -->
+    <section class="panel json-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="panel-kicker">Données</span>
+          <h2>JSON métier</h2>
+        </div>
+        <button type="button" class="btn btn-ghost" (click)="loadSampleJson()">Exemple</button>
+      </div>
+
+      <textarea
+        class="json-editor"
+        spellcheck="false"
+        placeholder='{ "clientName": "..." }'
+        [ngModel]="jsonInput()"
+        (ngModelChange)="jsonInput.set($event)"
+      ></textarea>
+
+      @if (jsonError()) {
+        <p class="json-error" role="alert">{{ jsonError() }}</p>
+      } @else {
+        <p class="json-hint">
+          Valeurs brutes — le template applique le format (devise, date, booléen…).
+          Notation : <code ngNonBindable>{{client.nom}}</code>
+        </p>
+      }
+
+      <div class="actions">
+        <button
+          type="button"
+          class="btn btn-primary btn-pdf"
+          [disabled]="!!jsonError() || isGenerating() || isSaving()"
+          (click)="generatePdf()"
+        >
+          {{ isGenerating() ? 'Génération…' : 'Générer le PDF' }}
+        </button>
+
+        <button type="button" class="btn btn-secondary" (click)="reset()" [disabled]="isGenerating()">
+          Réinitialiser
+        </button>
+      </div>
+    </section>
+
+    <!-- Aperçu -->
+    <section class="panel preview-panel">
+      <div class="panel-header">
+        <div class="panel-title">
+          <span class="panel-kicker">Contrôle</span>
+          <h2>Aperçu A4</h2>
+        </div>
+        <span class="live-dot">Temps réel</span>
+      </div>
+
+      <div class="preview-card">
+        <div class="preview-pages">
+          <div #preview class="preview-content preview-a4 ck-content" [innerHTML]="renderedHtml()"></div>
+        </div>
+      </div>
+
+      <p class="preview-legend">
+        Format A4 — saut de page automatique &nbsp;|&nbsp;
+        <span class="legend-filled">■</span> rempli &nbsp;
+        <span class="legend-missing">■</span> manquant
+      </p>
+    </section>
+  </div>
+</div>
+
+<app-git-import-modal
+  [open]="gitModalOpen()"
+  (closed)="closeGitModal()"
+  (imported)="onGitImported($event)"
+/>
+<app-git-commit-modal
+  [open]="gitCommitModalOpen()"
+  [templateName]="templateName()"
+  [content]="gitCommitContent()"
+  (closed)="closeGitCommitModal()"
+  (committed)="onGitCommitted($event)"
+/>
